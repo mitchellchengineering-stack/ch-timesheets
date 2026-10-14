@@ -1,0 +1,845 @@
+<!doctype html>
+<html lang="en-NZ">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CH Timesheets</title>
+<meta name="theme-color" content="#000000">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="CH Timesheets">
+<link rel="icon" href="icon.png">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme: light;
+  --bg:#f5f5f2; --card:#fff; --ink:#1b1b19; --muted:#6f6f68; --soft:#a3a39c; --line:#ececE8; --field:#f3f3f0;
+  --yellow:#f6d200; --yellow-soft:#fff6c2; --black:#111110; --red:#d83c31;
+  --late-bg:#fdecea; --late:#e5484d;
+  --lwop-bg:#fff8d6; --lwop:#e0b800;
+  --sick-bg:#e7f6ea; --sick:#3e9a4c;
+  --annual-bg:#e6effc; --annual:#3a72c4;
+  --ph-bg:#f0f0ee; --ph:#a3a39e;
+  --bereave-bg:#f0eaf9; --bereave:#7b57b5;
+  --flag:#e07b00;
+  --shadow-sm:0 1px 2px rgba(20,20,10,.05),0 2px 8px rgba(20,20,10,.04);
+  --shadow:0 1px 3px rgba(20,20,10,.05),0 10px 30px rgba(20,20,10,.07);
+  --cond:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --body:"Barlow",Arial,Helvetica,sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.45;-webkit-font-smoothing:antialiased}
+img{max-width:100%}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--yellow);outline-offset:2px}
+.muted{color:var(--muted)}
+h1,h2,h3{font-family:var(--cond);font-weight:700;line-height:1.1;margin:0}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:46px;padding:0 18px;border-radius:12px;border:0;background:var(--card);box-shadow:inset 0 0 0 1.5px var(--line);font-weight:600;cursor:pointer;text-decoration:none;color:var(--ink);transition:transform .08s,box-shadow .15s,background .15s}
+.btn:active{transform:scale(.98)}
+.btn:hover{box-shadow:inset 0 0 0 1.5px #cfcfc8}
+.btn.primary{background:var(--yellow);box-shadow:0 2px 0 #d9b800}
+.btn.primary:hover{background:#ffdb1f}
+.btn.ghost{background:transparent;box-shadow:none;color:var(--muted)}
+.btn.ghost:hover{background:#ecece8;color:var(--ink)}
+.btn.danger{color:var(--red);box-shadow:inset 0 0 0 1.5px #f1c7c3}
+.btn.sm{min-height:36px;padding:0 12px;font-size:14px;border-radius:10px}
+.btn.big{min-height:56px;font-size:19px;width:100%;font-family:var(--cond);letter-spacing:.01em;border-radius:14px}
+.btn[disabled]{opacity:.4;cursor:not-allowed;transform:none}
+.link{background:none;border:0;padding:8px 0;font-weight:600;color:var(--muted);cursor:pointer}
+.link:hover{color:var(--ink)}
+
+/* Top bar and tabs */
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 18px;max-width:760px;margin:0 auto}
+.logo{height:32px;width:auto;display:block}
+.logo-text{font-family:var(--cond);font-weight:700;font-size:22px}
+.top-right{display:flex;align-items:center;gap:8px}
+.who{font-weight:600;font-size:15px;color:var(--muted)}
+.tabs{display:flex;gap:4px;max-width:420px;margin:2px auto 0;padding:4px;background:#e9e9e5;border-radius:14px}
+.tabs-wrap{padding:0 18px}
+.tabs button{flex:1;border:0;background:none;padding:9px 6px;border-radius:10px;font-weight:600;font-size:15px;cursor:pointer;color:var(--muted)}
+.tabs button.on{background:var(--card);color:var(--ink);box-shadow:var(--shadow-sm)}
+
+/* Hero: the fortnight */
+.hero{max-width:760px;margin:0 auto;padding:16px 14px 4px}
+.hero-card{background:var(--card);border-radius:22px;box-shadow:var(--shadow);padding:22px 20px 20px;text-align:center}
+.roof{display:block;width:46px;height:14px;margin:0 auto 6px}
+.hero-name{font-family:var(--cond);font-weight:700;font-size:26px;margin-bottom:2px}
+.hero-dates{font-family:var(--cond);font-weight:600;font-size:21px}
+.hero-sub{font-size:13px;color:var(--soft)}
+.hero-total{margin-top:14px;display:flex;flex-direction:column;align-items:center}
+.hero-total .num{font-family:var(--cond);font-weight:700;font-size:clamp(56px,16vw,84px);line-height:.95;padding:0 10px;background:linear-gradient(transparent 62%,var(--yellow) 62%,var(--yellow) 92%,transparent 92%)}
+.hero-total .lbl{font-size:14px;color:var(--muted);margin-top:6px}
+.hero-weeks{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.hero-weeks div{background:var(--field);border-radius:14px;padding:10px}
+.hero-weeks span{display:block;font-size:13px;color:var(--muted)}
+.hero-weeks b{font-family:var(--cond);font-size:24px}
+
+/* Layout */
+.wrap{max-width:760px;margin:0 auto;padding:12px 14px 130px}
+.week{margin-top:18px}
+.week-head{display:flex;justify-content:space-between;align-items:baseline;padding:0 6px 10px}
+.week-head h2{font-size:24px}
+.week-head .wk-dates{color:var(--soft);font-size:14px;margin-left:8px;font-family:var(--body);font-weight:500}
+.week-total{font-family:var(--cond);font-weight:700;font-size:22px;color:var(--muted)}
+
+/* Day cards */
+.day{position:relative;background:var(--card);border-radius:18px;box-shadow:var(--shadow-sm);padding:14px 16px;margin-bottom:10px;overflow:hidden}
+.day::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:transparent}
+.day.st-late{background:var(--late-bg)}.day.st-late::before{background:var(--late)}
+.day.st-lwop{background:var(--lwop-bg)}.day.st-lwop::before{background:var(--lwop)}
+.day.st-sick{background:var(--sick-bg)}.day.st-sick::before{background:var(--sick)}
+.day.st-annual{background:var(--annual-bg)}.day.st-annual::before{background:var(--annual)}
+.day.st-ph{background:var(--ph-bg)}.day.st-ph::before{background:var(--ph)}
+.day.st-bereavement{background:var(--bereave-bg)}.day.st-bereavement::before{background:var(--bereave)}
+.day.is-dirty{box-shadow:0 0 0 2px var(--yellow),var(--shadow)}
+.day.is-future{opacity:.5;box-shadow:none;background:transparent;border:1.5px dashed #dcdcd6}
+.day-head{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.day-date{font-family:var(--cond);font-size:22px;font-weight:700;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.day-date .ddate{font-weight:600;color:var(--soft)}
+.pill{display:inline-flex;align-items:center;height:22px;padding:0 9px;border-radius:11px;font-family:var(--body);font-size:12px;font-weight:600;color:#fff}
+.pill.late{background:var(--late)}.pill.lwop{background:var(--lwop);color:var(--ink)}.pill.sick{background:var(--sick)}
+.pill.annual{background:var(--annual)}.pill.ph{background:var(--ph)}.pill.bereavement{background:var(--bereave)}.pill.other{background:#e3e3df;color:var(--ink)}
+.day-hours{font-family:var(--cond);font-weight:700;font-size:24px;text-align:right;white-space:nowrap}
+.day-hours.quiet{font-family:var(--body);font-size:14px;font-weight:600;color:var(--soft)}
+.day-body{margin-top:12px;display:grid;gap:10px}
+.times{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.field{display:grid;gap:5px}
+.field>span{font-size:13px;font-weight:600;color:var(--muted);padding-left:2px}
+.field input,.field select,.day textarea{width:100%;min-height:48px;padding:10px 12px;border:1.5px solid transparent;border-radius:12px;background-color:var(--field);font-size:18px;transition:border-color .15s,background .15s}
+.day[class*="st-"] .field input,.day[class*="st-"] .field select,.day[class*="st-"] textarea{background-color:rgba(255,255,255,.8)}
+.field input:focus,.field select:focus,.day textarea:focus{border-color:var(--yellow);background-color:#fff;outline:none}
+.field select{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%236f6f68' stroke-width='2'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px;font-size:16px}
+.day textarea{min-height:44px;font-size:15px;resize:vertical}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{position:relative;display:inline-flex}
+.chip input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+.chip span{display:inline-flex;align-items:center;min-height:38px;padding:0 15px;border-radius:19px;background:var(--field);font-weight:600;font-size:14px;color:var(--muted);transition:background .15s,color .15s}
+.chip input:checked+span{background:var(--yellow);color:var(--ink)}
+.chip.late input:checked+span{background:var(--late);color:#fff}
+.chip input:focus-visible+span{outline:3px solid var(--yellow);outline-offset:2px}
+.counted{margin:0;font-size:14px;color:var(--muted)}
+.counted:empty{display:none}
+.ph-note{margin:0;font-weight:600;color:var(--muted)}
+.flag{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px;padding:10px 12px;border-radius:12px;background:#fff1e0;font-size:14px}
+.flag b{color:#a85a00}
+.day-foot{display:flex;gap:8px;margin-top:12px}
+.day-foot:empty{display:none}
+.day-foot .btn.primary{flex:1}
+
+/* Admin crew list */
+.crew{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:10px}
+.crew-row{width:100%;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:14px;text-align:left;padding:14px 16px;border:0;border-radius:18px;background:var(--card);box-shadow:var(--shadow-sm);cursor:pointer;transition:box-shadow .15s,transform .08s}
+.crew-row:hover{box-shadow:var(--shadow)}
+.crew-row:active{transform:scale(.99)}
+.avatar{width:44px;height:44px;border-radius:50%;background:var(--yellow-soft);display:grid;place-items:center;font-family:var(--cond);font-weight:700;font-size:18px;color:#7a6400}
+.crew-name{font-family:var(--cond);font-weight:700;font-size:22px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;line-height:1.15}
+.crew-sub{display:block;font-size:13px;color:var(--soft)}
+.crew-total{text-align:right;font-family:var(--cond);font-weight:700;font-size:28px;line-height:1}
+.crew-total small{display:block;font-family:var(--body);font-size:12px;font-weight:500;color:var(--soft);margin-top:4px}
+.dot{display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:10px;background:#fff1e0;color:#a85a00;font-family:var(--body);font-size:12px;font-weight:600}
+.section-title{font-size:13px;font-weight:600;color:var(--soft);margin:22px 6px 8px}
+.actions-bar{position:fixed;left:0;right:0;bottom:0;padding:0 12px calc(12px + env(safe-area-inset-bottom,0px));pointer-events:none}
+.actions-in{max-width:736px;margin:0 auto;display:grid;grid-template-columns:1fr;gap:10px;align-items:center;background:rgba(255,255,255,.92);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-radius:20px;box-shadow:var(--shadow);padding:10px;pointer-events:auto}
+.actions-in .btn.danger{min-height:40px}
+@media (min-width:560px){.actions-in{grid-template-columns:1fr auto}.actions-in .btn.danger{min-height:56px}}
+.hint{grid-column:1/-1;margin:0 0 2px;font-size:13px;color:var(--soft);text-align:center}
+.back-row{max-width:760px;margin:0 auto;padding:6px 14px 0}
+.empty{background:var(--card);border-radius:18px;box-shadow:var(--shadow-sm);padding:28px;text-align:center}
+
+/* People and settings */
+.panel{background:var(--card);border-radius:18px;box-shadow:var(--shadow-sm);padding:18px;margin-top:14px}
+.panel-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:6px}
+.panel h2{font-size:24px;margin-bottom:4px}
+.panel p{margin:0 0 12px}
+.plist{list-style:none;margin:0;padding:0}
+.prow{display:grid;grid-template-columns:auto 1fr auto;gap:8px 12px;align-items:center;padding:14px 0;border-top:1px solid var(--line)}
+.prow:first-child{border-top:0}
+.pinfo b{display:block;font-size:17px}
+.pinfo span{font-size:13px}
+.pbtns{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}
+.prow .switch{grid-column:2/-1}
+.switch{display:inline-flex;align-items:center;gap:10px;font-weight:600;font-size:15px;cursor:pointer;width:max-content}
+.switch input{appearance:none;-webkit-appearance:none;width:50px;height:30px;border-radius:15px;background:#dcdcd6;position:relative;cursor:pointer;margin:0;transition:background .2s;flex:none}
+.switch input::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:left .2s}
+.switch input:checked{background:var(--yellow)}
+.switch input:checked::after{left:23px}
+
+/* Sign-in */
+.gate{max-width:420px;margin:0 auto;padding:36px 18px 40px;text-align:center}
+.logo-lg{width:min(300px,82%);height:auto;margin:8px auto 28px;display:block}
+.gate-card{background:var(--card);border-radius:24px;box-shadow:var(--shadow);padding:26px 18px}
+.gate h1{font-size:32px;margin-bottom:4px}
+.names{display:grid;gap:8px;margin:20px 0 8px}
+.name-btn{display:flex;align-items:center;gap:12px;min-height:62px;border:0;border-radius:16px;background:var(--field);font-family:var(--cond);font-weight:700;font-size:22px;text-align:left;padding:0 14px;cursor:pointer;transition:background .15s}
+.name-btn:hover{background:var(--yellow-soft)}
+.name-btn .avatar{width:38px;height:38px;font-size:16px;background:var(--card)}
+.dots{display:flex;justify-content:center;gap:16px;margin:22px 0 8px}
+.dots span{width:16px;height:16px;border-radius:50%;background:#e3e3df;transition:background .15s,transform .15s}
+.dots span.on{background:var(--yellow);transform:scale(1.15)}
+.dots.shake{animation:shake .35s}
+@keyframes shake{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+.pin-err{min-height:24px;color:var(--red);font-weight:600;margin:0 0 8px}
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;max-width:280px;margin:0 auto}
+.pad button{height:66px;border-radius:50%;width:66px;justify-self:center;border:0;background:var(--field);font-family:var(--cond);font-weight:600;font-size:28px;cursor:pointer;transition:background .1s}
+.pad button:active{background:var(--yellow)}
+.pad .blank{visibility:hidden}
+.form{display:grid;gap:12px;text-align:left;margin-top:18px}
+
+/* Modal, busy, toast */
+.overlay{position:fixed;inset:0;background:rgba(20,20,15,.35);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:16px;z-index:20}
+.overlay.busy-layer{z-index:25}
+.modal{background:var(--card);border-radius:22px;box-shadow:var(--shadow);padding:22px;width:100%;max-width:440px;max-height:85vh;overflow:auto}
+.modal h3{font-size:26px;margin-bottom:8px}
+.modal p{margin:0 0 12px;color:var(--muted)}
+.modal ul{margin:0 0 14px;padding-left:20px}
+.modal .form{margin-top:8px}
+.modal .field input{width:100%;min-height:48px;padding:10px 12px;border:1.5px solid transparent;border-radius:12px;background:var(--field);font-size:18px}
+.modal .field input:focus{border-color:var(--yellow);background:#fff;outline:none}
+.m-actions{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;margin-top:16px}
+.m-err{color:var(--red);font-weight:600;min-height:20px;margin:0}
+.chk-row{display:flex;align-items:center;gap:10px;font-weight:600}
+.chk-row input{width:22px;height:22px;accent-color:var(--yellow)}
+.spinner{width:44px;height:44px;border:4px solid #e6e6e1;border-top-color:var(--yellow);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.busy-box{background:var(--card);border-radius:20px;box-shadow:var(--shadow);padding:22px 28px;text-align:center;font-weight:600}
+.toast{position:fixed;left:50%;bottom:calc(110px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--black);color:#fff;padding:12px 18px;border-radius:14px;font-weight:600;z-index:30;max-width:calc(100% - 32px);text-align:center;box-shadow:var(--shadow)}
+.toast::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--yellow);margin-right:8px;vertical-align:middle}
+.toast.error{background:var(--red)}
+.toast.error::before{background:#fff}
+.key{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--muted);margin:14px 6px 0}
+.key span{display:inline-flex;align-items:center;gap:6px}
+.key i{width:10px;height:10px;border-radius:50%;display:inline-block}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="layer"></div>
+<div id="busy"></div>
+<script>
+/* ============================================================
+   PASTE YOUR GOOGLE WEB APP URL BETWEEN THE QUOTES BELOW
+   ============================================================ */
+const API_URL = "https://script.google.com/macros/s/AKfycbxe82xjPxfd-BKYfgV8S7MPkKq7ghALCtI9YMd1TwlquuDcHqvuZZAvLKJNtxjw00sU/exec";
+
+const STATUS = { sick: 'Sick', annual: 'Annual leave', lwop: 'Leave without pay', bereavement: 'Bereavement', other: 'Other' };
+const LOCK_AFTER_MS = 15 * 60 * 1000;
+const S = { view: 'loading', init: null, auth: null, me: null, f: null, people: null, tab: 'times',
+  workerId: null, drafts: {}, pinFor: null, pin: '', pinErr: '', lastActive: Date.now() };
+
+/* ---------- helpers ---------- */
+const $ = (sel) => document.querySelector(sel);
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+function pd(s) { const [y, m, d] = s.split('-').map(Number); return new Date(Date.UTC(y, m - 1, d)); }
+function dayInfo(s) { const d = pd(s); return { day: DAYS[d.getUTCDay()], short: d.getUTCDate() + ' ' + MONTHS[d.getUTCMonth()], year: d.getUTCFullYear(), dow: d.getUTCDay() }; }
+function rangeText(a, b) { const x = dayInfo(a), y = dayInfo(b); return `${x.short} – ${y.short} ${y.year}`; }
+function isWeekend(s) { const w = dayInfo(s).dow; return w === 0 || w === 6; }
+function hm(mins) { mins = Math.round(mins || 0); const h = Math.floor(mins / 60), m = mins % 60; return h + 'h' + (m ? ' ' + m + 'm' : ''); }
+function toMin(t) { if (!t || !/^\d{1,2}:\d{2}$/.test(t)) return null; const [h, m] = t.split(':').map(Number); return h * 60 + m; }
+function fromMin(m) { return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); }
+function t12(t) { const m = toMin(t); if (m == null) return ''; const h = Math.floor(m / 60); return ((h % 12) || 12) + ':' + String(m % 60).padStart(2, '0') + (h < 12 ? 'am' : 'pm'); }
+
+/* Same rules as the Google script:
+   start rounds to nearest 15 (UP to the next 15 if late), finish rounds to nearest 15,
+   30 min lunch off when the day is over 6 hours unless "didn't have lunch" is ticked. */
+function calc(d, isPH) {
+  const out = { countedStart: '', countedFinish: '', lunchDeducted: false, minutes: 0, incomplete: false, bad: false };
+  if (d.status) return out;
+  if (isPH && !d.phOverride) return out;
+  const s = toMin(d.start), f = toMin(d.finish);
+  if (s == null && f == null) return out;
+  if (s == null || f == null) { out.incomplete = true; return out; }
+  const cs = d.late ? Math.ceil(s / 15) * 15 : Math.round(s / 15) * 15;
+  const cf = Math.round(f / 15) * 15;
+  out.countedStart = fromMin(cs); out.countedFinish = fromMin(cf);
+  let worked = cf - cs;
+  if (worked <= 0) { out.incomplete = true; out.bad = true; return out; }
+  if (worked > 360 && !d.noLunch) { worked -= 30; out.lunchDeducted = true; }
+  out.minutes = worked;
+  return out;
+}
+
+/* ---------- talking to Google ---------- */
+async function api(action, extra = {}) {
+  let res;
+  try {
+    res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(Object.assign({ action, auth: S.auth }, extra)) });
+  } catch (e) {
+    throw new Error("Couldn't reach Google. Check your signal and try again.");
+  }
+  if (!res.ok) throw new Error("Couldn't reach Google. Check your signal and try again.");
+  const j = await res.json();
+  if (!j.ok) throw new Error(j.error || 'Something went wrong.');
+  return j;
+}
+function busy(text) {
+  $('#busy').innerHTML = text ? `<div class="overlay busy-layer"><div class="busy-box"><div class="spinner"></div>${esc(text)}</div></div>` : '';
+}
+let toastTimer;
+function toast(msg, isError) {
+  document.querySelectorAll('.toast').forEach(t => t.remove());
+  const t = document.createElement('div');
+  t.className = 'toast' + (isError ? ' error' : '');
+  t.setAttribute('role', 'status');
+  t.textContent = msg;
+  document.body.appendChild(t);
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.remove(), isError ? 5000 : 2200);
+}
+async function run(text, fn) {
+  busy(text);
+  try { await fn(); } catch (e) { busy(''); toast(e.message, true); return false; }
+  busy('');
+  return true;
+}
+function modal(html) { $('#layer').innerHTML = `<div class="overlay" data-overlay><div class="modal" role="dialog" aria-modal="true">${html}</div></div>`; const f = $('#layer input, #layer button.primary'); if (f) f.focus(); }
+function closeModal() { $('#layer').innerHTML = ''; }
+
+/* ---------- data lookups ---------- */
+function entry(workerId, date) { return S.f.entries.find(e => e.workerId === workerId && e.date === date) || null; }
+function setEntry(workerId, date, e) {
+  S.f.entries = S.f.entries.filter(x => !(x.workerId === workerId && x.date === date));
+  if (e) S.f.entries.push(e);
+}
+function fromEntry(e) {
+  return { status: e ? e.status || '' : '', start: e ? e.start || '' : '', finish: e ? e.finish || '' : '',
+    late: !!(e && e.late), noLunch: !!(e && e.noLunch), notes: e ? e.notes || '' : '', phOverride: !!(e && e.phOverride) };
+}
+function getDraft(key) { if (S.drafts[key]) return S.drafts[key]; const [w, d] = key.split('|'); return fromEntry(entry(w, d)); }
+function setDraft(key, d) {
+  const [w, date] = key.split('|');
+  if (JSON.stringify(d) === JSON.stringify(fromEntry(entry(w, date)))) delete S.drafts[key];
+  else S.drafts[key] = d;
+}
+function totals(workerId) {
+  const weeks = [0, 0];
+  S.f.entries.filter(e => e.workerId === workerId).forEach(e => {
+    const i = S.f.dates.indexOf(e.date);
+    if (i >= 0) weeks[i < 7 ? 0 : 1] += Math.round((e.hours || 0) * 60);
+  });
+  return { weeks, total: weeks[0] + weeks[1] };
+}
+function visibleDates(workerId, wk) {
+  return S.f.dates.slice(wk * 7, wk * 7 + 7).filter(d =>
+    !isWeekend(d) || S.f.showWeekends || S.f.entries.some(e => e.date === d && (!workerId || e.workerId === workerId)));
+}
+function hasDrafts() { return Object.keys(S.drafts).length > 0; }
+function okToLeave() { return !hasDrafts() || confirm('You have changes that are not saved. Leave without saving?'); }
+
+/* ---------- pieces ---------- */
+function logo(cls) {
+  return `<img src="logo.png" alt="CH Engineering" class="${cls}" onerror="this.outerHTML='<span class=&quot;logo-text&quot;>CH Engineering</span>'">`;
+}
+function nameBtn(x) {
+  return `<button class="name-btn" data-action="pickPerson" data-id="${x.id}" data-name="${esc(x.name)}"><span class="avatar">${initials(x.name)}</span>${esc(x.name)}</button>`;
+}
+function topbar(right) { return `<header class="top">${logo('logo')}<div class="top-right">${right || ''}</div></header>`; }
+const ROOF = `<svg class="roof" viewBox="0 0 46 14" aria-hidden="true"><path d="M3 12 L23 3 L43 12" fill="none" stroke="#f6d200" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+function initials(n) { return esc(String(n || '').replace(/[^A-Za-zĀ-ſ\s'-]/g, ' ').split(/\s+/).filter(w => /[A-Za-z]/.test(w)).slice(0, 2).map(w => w[0]).join('').toUpperCase() || '?'); }
+function hero(opts = {}) {
+  const f = S.f;
+  return `<section class="hero"><div class="hero-card">${ROOF}
+    ${opts.name ? `<div class="hero-name">${esc(opts.name)}</div>` : ''}
+    <div class="hero-dates">${rangeText(f.start, f.end)}</div>
+    <div class="hero-sub">Wednesday to Tuesday</div>
+    ${opts.totals ? `<div class="hero-total"><span class="num">${hm(opts.totals.total)}</span><span class="lbl">${esc(opts.label || 'this fortnight')}</span></div>
+      ${opts.weeks === false ? '' : `<div class="hero-weeks"><div><span>Week 1</span><b>${hm(opts.totals.weeks[0])}</b></div><div><span>Week 2</span><b>${hm(opts.totals.weeks[1])}</b></div></div>`}` : ''}
+  </div></section>`;
+}
+
+function cardBits(workerId, date, admin) {
+  const key = workerId + '|' + date;
+  const d = getDraft(key);
+  const ph = S.f.holidays[date];
+  const blocked = !!ph && !d.phOverride;
+  const c = calc(d, !!ph);
+  let hours, quiet = false;
+  if (blocked) { hours = admin ? '–' : 'Public holiday'; quiet = true; }
+  else if (d.status) { hours = admin ? '–' : STATUS[d.status]; quiet = true; }
+  else if (c.minutes) hours = hm(c.minutes);
+  else if (c.bad) { hours = 'Check times'; quiet = true; }
+  else if (c.incomplete) { hours = 'Not finished'; quiet = true; }
+  else { hours = '–'; quiet = true; }
+  let counted = '';
+  if (!blocked && !d.status && c.countedStart) {
+    counted = `Counted ${t12(c.countedStart)} to ${t12(c.countedFinish)}` + (c.lunchDeducted ? ', 30 min lunch off' : (d.noLunch ? ', no lunch taken' : ''));
+  } else if (c.bad) counted = 'Finish time needs to be after the start time.';
+  if (!admin && d.late && !d.status && !blocked) counted = 'Marked late. ' + counted;
+  let tint = '';
+  if (admin) tint = blocked ? 'st-ph' : d.status ? (d.status === 'other' ? '' : 'st-' + d.status) : d.late ? 'st-late' : '';
+  const dirty = !!S.drafts[key];
+  const foot = dirty ? `<button class="btn primary" data-action="saveDay">Save</button><button class="btn ghost" data-action="undoDay">Undo</button>` : '';
+  let pill = '';
+  if (admin) {
+    if (blocked) pill = '<span class="pill ph">Public holiday</span>';
+    else if (d.status) pill = `<span class="pill ${d.status}">${STATUS[d.status]}</span>`;
+    else if (d.late) pill = '<span class="pill late">Late</span>';
+  }
+  return { key, d, ph, blocked, c, hours, quiet, counted, tint, dirty, foot, pill };
+}
+
+function dayCard(workerId, date, admin) {
+  const b = cardBits(workerId, date, admin);
+  const { key, d, ph, blocked } = b;
+  const info = dayInfo(date);
+  const future = !admin && date > S.f.today;
+  const e = entry(workerId, date);
+  let body = '';
+  if (future) {
+    body = `<p class="counted">You can fill this in on the day.</p>`;
+  } else if (blocked) {
+    body = `<p class="ph-note">${esc(ph)}</p>` + (admin ? `<div><button class="btn ghost sm" data-action="override">Worked this day</button></div>` : '');
+  } else {
+    let options = `<option value="">Working</option>`;
+    if (admin) options += Object.keys(STATUS).map(k => `<option value="${k}" ${d.status === k ? 'selected' : ''}>${STATUS[k]}</option>`).join('');
+    else {
+      options += `<option value="sick" ${d.status === 'sick' ? 'selected' : ''}>Sick</option>`;
+      if (d.status && d.status !== 'sick') options += `<option value="${d.status}" selected>${STATUS[d.status]}</option>`;
+    }
+    body += `<label class="field"><span>Day</span><select data-field="status">${options}</select></label>`;
+    if (!d.status) {
+      body += `<div class="times">
+          <label class="field"><span>${d.late ? 'Arrived' : 'Start'}</span><input type="time" data-field="start" value="${esc(d.start)}"></label>
+          <label class="field"><span>Finish</span><input type="time" data-field="finish" value="${esc(d.finish)}"></label>
+        </div>
+        <div class="chips">
+          ${admin ? `<label class="chip late"><input type="checkbox" data-field="late" ${d.late ? 'checked' : ''}><span>Late</span></label>` : ''}
+          <label class="chip"><input type="checkbox" data-field="noLunch" ${d.noLunch ? 'checked' : ''}><span>Didn't have lunch</span></label>
+          ${admin && ph ? `<label class="chip"><input type="checkbox" data-field="phOverride" checked><span>Worked public holiday</span></label>` : ''}
+        </div>`;
+    }
+    body += `<p class="counted" data-out="counted">${esc(b.counted)}</p>`;
+    if (ph && !admin) body = `<p class="ph-note">${esc(ph)}</p>` + body;
+  }
+  if (!future) body += `<textarea data-field="notes" rows="1" placeholder="Add a note" aria-label="Note for ${info.day} ${info.short}">${esc(d.notes)}</textarea>`;
+  const flag = admin && e && e.changed
+    ? `<div class="flag"><div><b>Changed by worker.</b> It was ${esc(e.was)}.</div><button class="btn sm" data-action="acceptChange">Looks good</button></div>` : '';
+  return `<article class="day ${b.tint} ${b.dirty ? 'is-dirty' : ''} ${future ? 'is-future' : ''}" data-key="${key}">
+    <div class="day-head"><div class="day-date">${info.day}<span class="ddate">${info.short}</span>${b.pill}</div>
+      <div class="day-hours ${b.quiet ? 'quiet' : ''}" data-out="hours">${esc(b.hours)}</div></div>
+    <div class="day-body">${body}</div>${flag}
+    <div class="day-foot" data-out="foot">${b.foot}</div></article>`;
+}
+
+function weeksHtml(workerId, admin) {
+  const t = totals(workerId);
+  return [0, 1].map(wk => {
+    const dates = visibleDates(workerId, wk);
+    const first = S.f.dates[wk * 7], last = S.f.dates[wk * 7 + 6];
+    return `<section class="week"><div class="week-head"><h2>Week ${wk + 1}<span class="wk-dates">${dayInfo(first).short} – ${dayInfo(last).short}</span></h2>
+      <span class="week-total">${hm(t.weeks[wk])}</span></div>
+      ${dates.map(d => dayCard(workerId, d, admin)).join('')}</section>`;
+  }).join('');
+}
+
+/* ---------- views ---------- */
+const VIEWS = {
+  loading: () => `<div class="gate">${logo('logo-lg')}<div class="spinner"></div></div>`,
+  notSetUp: () => `<div class="gate">${logo('logo-lg')}<div class="gate-card"><h1>Almost there</h1><p class="muted">Paste your Google web app link into <b>index.html</b> where it says PASTE_YOUR_WEB_APP_URL_HERE, then reload this page.</p></div></div>`,
+  offline: () => `<div class="gate">${logo('logo-lg')}<div class="gate-card"><h1>Can't connect</h1><p class="muted">${esc(S.loadErr || '')}</p><button class="btn primary big" data-action="reload">Try again</button></div></div>`,
+  firstRun: () => `<div class="gate">${logo('logo-lg')}<div class="gate-card"><h1>Set up the first admin</h1>
+    <p class="muted">You can add more admins and your workers once you're in.</p>
+    <div class="form">
+      <label class="field"><span>Your name</span><input id="fr-name" autocomplete="name"></label>
+      <label class="field"><span>Choose a 4-number PIN</span><input id="fr-pin" type="password" inputmode="numeric" maxlength="4" autocomplete="off"></label>
+      <label class="field"><span>Enter the PIN again</span><input id="fr-pin2" type="password" inputmode="numeric" maxlength="4" autocomplete="off"></label>
+      <p class="m-err" id="fr-err"></p>
+      <button class="btn primary big" data-action="createFirstAdmin">Create admin</button>
+    </div></div></div>`,
+  signin: () => {
+    const w = S.init.workers;
+    return `<div class="gate">${logo('logo-lg')}<div class="gate-card"><h1>Who's entering time?</h1>
+      ${w.length ? `<div class="names">${w.map(x => nameBtn(x)).join('')}</div>`
+        : `<p class="muted" style="margin:20px 0">No one is set up to enter their own time yet.</p>`}</div>
+      <p><button class="link" data-action="adminList">Admin sign in</button></p></div>`;
+  },
+  admins: () => `<div class="gate">${logo('logo-lg')}<div class="gate-card"><h1>Admin sign in</h1>
+    <div class="names">${S.init.admins.map(x => nameBtn(x)).join('')}</div></div>
+    <p><button class="link" data-action="toSignin">Back</button></p></div>`,
+  pin: () => `<div class="gate">${logo('logo-lg')}<div class="gate-card"><h1>${esc(S.pinFor.name)}</h1><p class="muted">Enter your 4-number PIN</p>
+    <div class="dots" id="dots">${[0, 1, 2, 3].map(i => `<span class="${i < S.pin.length ? 'on' : ''}"></span>`).join('')}</div>
+    <p class="pin-err" role="alert">${esc(S.pinErr)}</p>
+    <div class="pad">${[1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => `<button data-action="pinKey" data-k="${n}">${n}</button>`).join('')}
+      <span class="blank"></span><button data-action="pinKey" data-k="0">0</button><button data-action="pinBack" aria-label="Delete">⌫</button></div></div>
+    <p><button class="link" data-action="toSignin">Back</button></p></div>`,
+  worker: () => topbar(`<span class="who">${esc(S.me.name)}</span><button class="btn ghost sm" data-action="signout">Sign out</button>`)
+    + hero({ totals: totals(S.me.id) }) + `<main class="wrap">${weeksHtml(S.me.id, false)}</main>`,
+  admin: () => {
+    const head = topbar(`<span class="who">${esc(S.me.name)}</span><button class="btn ghost sm" data-action="lock">Lock</button>`)
+      + `<div class="tabs-wrap"><nav class="tabs">${[['times', 'Timesheets'], ['people', 'People'], ['settings', 'Settings']].map(([k, l]) =>
+        `<button data-action="tab" data-tab="${k}" class="${S.tab === k ? 'on' : ''}">${l}</button>`).join('')}</nav></div>`;
+    if (S.tab === 'people') return head + peopleHtml();
+    if (S.tab === 'settings') return head + settingsHtml();
+    if (S.workerId) {
+      const p = S.f.people.find(x => x.id === S.workerId);
+      return head + `<div class="back-row"><button class="btn ghost sm" data-action="backToList">‹ All workers</button></div>`
+        + hero({ name: p ? p.name : '', totals: totals(S.workerId) }) + `<main class="wrap">${keyHtml()}${weeksHtml(S.workerId, true)}</main>`;
+    }
+    const crew = S.f.people.reduce((t, p) => { const x = totals(p.id); t.weeks[0] += x.weeks[0]; t.weeks[1] += x.weeks[1]; t.total += x.total; return t; }, { weeks: [0, 0], total: 0 });
+    return head + hero({ totals: crew, label: 'crew total this fortnight', weeks: false }) + crewHtml();
+  }
+};
+
+function keyHtml() {
+  return `<div class="key">${[['late', 'Late'], ['lwop', 'Leave without pay'], ['sick', 'Sick'], ['annual', 'Annual leave'], ['ph', 'Public holiday'], ['bereave', 'Bereavement']]
+    .map(([v, l]) => `<span><i style="background:var(--${v})"></i>${l}</span>`).join('')}</div>`;
+}
+
+function crewHtml() {
+  const f = S.f;
+  const rows = f.people.map(p => {
+    const t = totals(p.id);
+    const flagged = f.entries.some(e => e.workerId === p.id && e.changed);
+    return `<li><button class="crew-row" data-action="openWorker" data-id="${p.id}">
+      <span class="avatar">${initials(p.name)}</span>
+      <span><span class="crew-name">${esc(p.name)}${flagged ? '<span class="dot">Changed</span>' : ''}</span>
+      <span class="crew-sub">${p.active ? (p.selfEntry ? 'Enters own time' : 'Office enters time') : 'Removed'}</span></span>
+      <span class="crew-total">${hm(t.total)}<small>Wk 1: ${hm(t.weeks[0])}, Wk 2: ${hm(t.weeks[1])}</small></span></button></li>`;
+  }).join('');
+  const hint = f.pdfSaved ? '' : "Export this fortnight's PDF first, then you can clear it.";
+  return `<main class="wrap">${rows ? `<div class="section-title">Your crew</div><ul class="crew">${rows}</ul>` : `<div class="empty"><p><b>No workers yet.</b></p><p class="muted">Add your crew in People.</p><button class="btn primary" data-action="tab" data-tab="people">Go to People</button></div>`}</main>
+    <div class="actions-bar"><div class="actions-in">
+      <button class="btn primary big" data-action="export">Export times for accounts</button>
+      <button class="btn danger" data-action="clear" ${f.pdfSaved ? '' : 'disabled'}>Clear fortnight</button>
+      ${hint ? `<p class="hint">${esc(hint)}</p>` : ''}</div></div>`;
+}
+function addDays(s, n) { const d = pd(s); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); }
+
+function peopleHtml() {
+  if (!S.people) return `<main class="wrap"><p class="muted">Loading…</p></main>`;
+  const workers = S.people.filter(p => p.role === 'Worker'), admins = S.people.filter(p => p.role === 'Admin');
+  const wRows = workers.map(p => `<li class="prow"><span class="avatar">${initials(p.name)}</span><div class="pinfo"><b>${esc(p.name)}</b>
+      <span class="muted">${p.selfEntry ? 'Enters own time with their PIN' : 'Office enters their time'}</span></div>
+      <div class="pbtns"><button class="btn ghost sm" data-action="editPerson" data-id="${p.id}">Edit</button>
+      <button class="btn ghost sm" data-action="removePerson" data-id="${p.id}">Remove</button></div>
+      <label class="switch"><input type="checkbox" data-action="toggleSelf" data-id="${p.id}" ${p.selfEntry ? 'checked' : ''}>Enters own time</label></li>`).join('');
+  const aRows = admins.map(p => `<li class="prow"><span class="avatar">${initials(p.name)}</span><div class="pinfo"><b>${esc(p.name)}</b>${p.id === S.me.id ? '<span class="muted">You</span>' : ''}</div>
+      <div class="pbtns"><button class="btn ghost sm" data-action="editPerson" data-id="${p.id}">Edit</button>
+      ${p.id === S.me.id ? '' : `<button class="btn ghost sm" data-action="removePerson" data-id="${p.id}">Remove</button>`}</div></li>`).join('');
+  return `<main class="wrap">
+    <section class="panel"><div class="panel-head"><h2>Workers</h2><button class="btn primary sm" data-action="addPerson" data-role="Worker">Add worker</button></div>
+      ${wRows ? `<ul class="plist">${wRows}</ul>` : '<p class="muted">No workers yet. Add your first one.</p>'}</section>
+    <section class="panel"><div class="panel-head"><h2>Admins</h2><button class="btn primary sm" data-action="addPerson" data-role="Admin">Add admin</button></div>
+      <ul class="plist">${aRows}</ul></section></main>`;
+}
+
+function settingsHtml() {
+  return `<main class="wrap">
+    <section class="panel"><h2>Fortnight view</h2>
+      <p class="muted">Weekends are hidden unless this is on. A weekend with times entered always shows.</p>
+      <label class="switch"><input type="checkbox" data-action="toggleWeekends" ${S.f.showWeekends ? 'checked' : ''}>Show weekends</label></section>
+    <section class="panel"><h2>Your PIN</h2><p class="muted">The admin view locks itself after 15 minutes without use.</p>
+      <button class="btn" data-action="changePin">Change my PIN</button></section></main>`;
+}
+
+function render() {
+  const y = window.scrollY;
+  $('#app').innerHTML = VIEWS[S.view]();
+  window.scrollTo(0, y);
+}
+
+/* ---------- live card updates ---------- */
+function updateCard(card, key) {
+  const [w, date] = key.split('|');
+  const b = cardBits(w, date, S.me.role === 'Admin');
+  const oldPill = card.querySelector('.day-date .pill'); if (oldPill) oldPill.remove();
+  if (b.pill) card.querySelector('.day-date').insertAdjacentHTML('beforeend', b.pill);
+  const h = card.querySelector('[data-out=hours]');
+  h.textContent = b.hours; h.classList.toggle('quiet', b.quiet);
+  const c = card.querySelector('[data-out=counted]'); if (c) c.textContent = b.counted;
+  card.querySelector('[data-out=foot]').innerHTML = b.foot;
+  card.classList.toggle('is-dirty', b.dirty);
+}
+function replaceCard(key) {
+  const card = document.querySelector(`[data-key="${CSS.escape(key)}"]`);
+  if (!card) return render();
+  const [w, date] = key.split('|');
+  card.outerHTML = dayCard(w, date, S.me.role === 'Admin');
+}
+function fieldChange(el, rerender) {
+  const card = el.closest('[data-key]'); if (!card) return;
+  const key = card.dataset.key;
+  const d = Object.assign({}, getDraft(key));
+  d[el.dataset.field] = el.type === 'checkbox' ? el.checked : el.value;
+  setDraft(key, d);
+  if (rerender) replaceCard(key); else updateCard(card, key);
+}
+
+/* ---------- sign in ---------- */
+async function boot() {
+  if (!API_URL || API_URL.indexOf('PASTE_') === 0) { S.view = 'notSetUp'; return render(); }
+  S.view = 'loading'; render();
+  try {
+    S.init = await api('init');
+    S.view = S.init.firstRun ? 'firstRun' : 'signin';
+  } catch (e) { S.loadErr = e.message; S.view = 'offline'; }
+  render();
+}
+async function submitPin() {
+  const pin = S.pin;
+  S.auth = { id: S.pinFor.id, pin };
+  busy('Signing in…');
+  try {
+    const r = await api('login');
+    busy('');
+    S.me = r.me; S.f = r.fortnight; S.drafts = {}; S.workerId = null; S.tab = 'times'; S.people = null;
+    S.lastActive = Date.now();
+    S.view = S.me.role === 'Admin' ? 'admin' : 'worker';
+    window.scrollTo(0, 0); render();
+  } catch (e) {
+    busy('');
+    S.auth = null; S.pin = ''; S.pinErr = e.message; render();
+    const dots = $('#dots'); if (dots) dots.classList.add('shake');
+  }
+}
+async function signOut(msg) {
+  S.auth = null; S.me = null; S.f = null; S.drafts = {}; S.workerId = null; S.people = null; S.pin = ''; S.pinErr = '';
+  closeModal();
+  await boot();
+  if (msg) toast(msg);
+}
+
+/* ---------- export and clear ---------- */
+function exportIssues() {
+  const out = [];
+  const name = id => (S.f.people.find(p => p.id === id) || {}).name || 'Someone';
+  if (hasDrafts()) out.push('You have unsaved changes on screen. Save them first or they won\'t be in the PDF.');
+  S.f.entries.slice().sort((a, b) => (name(a.workerId) + a.date).localeCompare(name(b.workerId) + b.date)).forEach(e => {
+    const i = dayInfo(e.date), when = `${name(e.workerId)}, ${i.day} ${i.short}`;
+    const blocked = S.f.holidays[e.date] && !e.phOverride;
+    if (!e.status && !blocked) {
+      if (e.start && !e.finish) out.push(`${when}: no finish time`);
+      else if (!e.start && e.finish) out.push(`${when}: no start time`);
+      else if (e.start && e.finish && !(e.hours > 0)) out.push(`${when}: finish is before start`);
+    }
+    if (e.changed) out.push(`${when}: changed by worker, not reviewed yet`);
+  });
+  return out;
+}
+// Sends a smaller copy of logo.png along with the export, so it can go at the top of every PDF page
+async function logoData() {
+  try {
+    const img = new Image(); img.src = 'logo.png'; await img.decode();
+    const w = 600, h = Math.round(img.naturalHeight * w / img.naturalWidth);
+    const c = document.createElement('canvas'); c.width = w; c.height = h;
+    c.getContext('2d').drawImage(img, 0, 0, w, h);
+    return c.toDataURL('image/png');
+  } catch (e) { return ''; }
+}
+async function doExport() {
+  closeModal();
+  let result;
+  const ok = await run('Making the PDF and saving it to Drive…', async () => { result = await api('exportPdf', { start: S.f.start, logo: await logoData() }); });
+  if (!ok) return;
+  S.f.pdfSaved = true;
+  try {
+    const bin = atob(result.base64), arr = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+    const url = URL.createObjectURL(new Blob([arr], { type: 'application/pdf' }));
+    const a = document.createElement('a'); a.href = url; a.download = result.fileName;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  } catch (e) { /* the Drive copy still exists */ }
+  render();
+  modal(`<h3>PDF saved</h3><p>It's downloaded and saved in Drive as <b>${esc(result.fileName)}</b>.</p>
+    <div class="m-actions"><a class="btn ghost" href="${esc(result.url)}" target="_blank" rel="noopener">Open in Drive</a><button class="btn primary" data-action="closeModal">Done</button></div>`);
+}
+
+/* ---------- people modal ---------- */
+function personModal(person, role) {
+  const isWorker = (person ? person.role : role) === 'Worker';
+  const title = person ? `Edit ${esc(person.name)}` : (isWorker ? 'Add worker' : 'Add admin');
+  modal(`<h3>${title}</h3><div class="form">
+    <label class="field"><span>Name</span><input id="m-name" value="${esc(person ? person.name : '')}" autocomplete="off"></label>
+    ${isWorker ? `<label class="chk-row"><input type="checkbox" id="m-self" ${person && person.selfEntry ? 'checked' : ''}>Enters their own time</label>` : ''}
+    <label class="field"><span>${person && person.hasPin ? 'New PIN (leave blank to keep the current one)' : (isWorker ? 'PIN (needed if they enter their own time)' : 'PIN')}</span>
+      <input id="m-pin" type="password" inputmode="numeric" maxlength="4" autocomplete="off"></label>
+    <p class="m-err" id="m-err"></p></div>
+    <div class="m-actions"><button class="btn ghost" data-action="closeModal">Cancel</button>
+    <button class="btn primary" data-action="savePerson" data-id="${person ? person.id : ''}" data-role="${isWorker ? 'Worker' : 'Admin'}">Save</button></div>`);
+}
+
+/* ---------- actions ---------- */
+const ACTIONS = {
+  reload: () => boot(),
+  closeModal: () => closeModal(),
+  adminList: () => { S.view = 'admins'; render(); },
+  toSignin: () => { S.view = 'signin'; S.pin = ''; S.pinErr = ''; render(); },
+  pickPerson: (el) => { S.pinFor = { id: el.dataset.id, name: el.dataset.name }; S.pin = ''; S.pinErr = ''; S.view = 'pin'; render(); },
+  pinKey: (el) => { if (S.pin.length >= 4) return; S.pin += el.dataset.k; S.pinErr = ''; render(); if (S.pin.length === 4) submitPin(); },
+  pinBack: () => { S.pin = S.pin.slice(0, -1); render(); },
+  createFirstAdmin: async () => {
+    const name = $('#fr-name').value.trim(), pin = $('#fr-pin').value, pin2 = $('#fr-pin2').value, err = $('#fr-err');
+    if (!name) return err.textContent = 'Enter your name.';
+    if (!/^\d{4}$/.test(pin)) return err.textContent = 'The PIN needs to be 4 numbers.';
+    if (pin !== pin2) return err.textContent = "The two PINs don't match.";
+    const ok = await run('Setting up…', async () => {
+      const r = await api('createFirstAdmin', { name, pin });
+      S.pinFor = { id: r.me.id, name: r.me.name };
+    });
+    if (ok) { S.pin = pin; submitPin(); }
+  },
+  signout: () => { if (okToLeave()) signOut(); },
+  lock: () => { if (okToLeave()) signOut('Locked'); },
+  tab: async (el) => {
+    if (!okToLeave()) return;
+    S.drafts = {}; S.tab = el.dataset.tab; S.workerId = null; window.scrollTo(0, 0); render();
+    if (S.tab === 'people') { await run('Loading…', async () => { S.people = (await api('people')).people; }); render(); }
+  },
+  openWorker: (el) => { S.workerId = el.dataset.id; window.scrollTo(0, 0); render(); },
+  backToList: () => { if (!okToLeave()) return; S.drafts = {}; S.workerId = null; window.scrollTo(0, 0); render(); },
+  override: (el) => {
+    const key = el.closest('[data-key]').dataset.key;
+    setDraft(key, Object.assign({}, getDraft(key), { phOverride: true }));
+    replaceCard(key);
+  },
+  undoDay: (el) => { const key = el.closest('[data-key]').dataset.key; delete S.drafts[key]; replaceCard(key); },
+  saveDay: async (el) => {
+    const key = el.closest('[data-key]').dataset.key;
+    const [workerId, date] = key.split('|');
+    const d = Object.assign({}, S.drafts[key]);
+    if (d.status) { d.start = ''; d.finish = ''; d.late = false; d.noLunch = false; }
+    const c = calc(d, !!S.f.holidays[date]);
+    if (c.bad) return toast('The finish time needs to be after the start time.', true);
+    const ok = await run('Saving…', async () => {
+      const r = await api('saveDay', { workerId, date, data: d });
+      setEntry(workerId, date, r.entry);
+      delete S.drafts[key];
+    });
+    if (ok) { render(); toast('Saved'); }
+  },
+  acceptChange: async (el) => {
+    const [workerId, date] = el.closest('[data-key]').dataset.key.split('|');
+    const ok = await run('Saving…', async () => { const r = await api('acceptChange', { workerId, date }); setEntry(workerId, date, r.entry); });
+    if (ok) render();
+  },
+  export: () => {
+    const issues = exportIssues();
+    if (!issues.length) return doExport();
+    modal(`<h3>Check these first</h3><p>These days might not be right on the PDF:</p>
+      <ul>${issues.map(i => `<li>${esc(i)}</li>`).join('')}</ul>
+      <div class="m-actions"><button class="btn ghost" data-action="closeModal">Go back and fix</button>
+      <button class="btn primary" data-action="exportAnyway">Export anyway</button></div>`);
+  },
+  exportAnyway: () => doExport(),
+  clear: () => modal(`<h3>Clear ${rangeText(S.f.start, S.f.end)}?</h3>
+    ${S.f.today <= S.f.end ? `<p><b style="color:var(--red)">This fortnight hasn't finished yet.</b> It runs until Tuesday ${dayInfo(S.f.end).short}.</p>` : ''}
+    <p>This removes this fortnight's times from the app and the spreadsheet, then moves on to ${rangeText(addDays(S.f.start, 14), addDays(S.f.start, 27))}.</p>
+    <p>The PDF for this fortnight is already saved in your Drive.</p>
+    <div class="m-actions"><button class="btn ghost" data-action="closeModal">Cancel</button>
+    <button class="btn danger" data-action="confirmClear">Clear fortnight</button></div>`),
+  confirmClear: async () => {
+    closeModal();
+    const ok = await run('Clearing the fortnight…', async () => {
+      await api('clearFortnight', { start: S.f.start });
+      S.f = (await api('fortnight')).fortnight; S.drafts = {};
+    });
+    if (ok) { window.scrollTo(0, 0); render(); toast('Cleared. Now on ' + rangeText(S.f.start, S.f.end)); }
+  },
+  addPerson: (el) => personModal(null, el.dataset.role),
+  editPerson: (el) => personModal(S.people.find(p => p.id === el.dataset.id)),
+  savePerson: async (el) => {
+    const name = $('#m-name').value.trim(), pin = $('#m-pin').value, selfEl = $('#m-self'), err = $('#m-err');
+    const id = el.dataset.id, role = el.dataset.role;
+    const existing = id ? S.people.find(p => p.id === id) : null;
+    if (!name) return err.textContent = 'Enter a name.';
+    if (pin && !/^\d{4}$/.test(pin)) return err.textContent = 'The PIN needs to be 4 numbers.';
+    const needsPin = (role === 'Admin' || (selfEl && selfEl.checked)) && !(existing && existing.hasPin);
+    if (needsPin && !pin) return err.textContent = 'Set a 4-number PIN.';
+    const person = { id, role, name, selfEntry: selfEl ? selfEl.checked : false, pin };
+    const ok = await run('Saving…', async () => {
+      S.people = (await api('savePerson', { person })).people;
+      if (S.me.id === id) S.me.name = name;
+      if (S.me.id === id && pin) S.auth.pin = pin;
+      S.f = (await api('fortnight')).fortnight;
+    });
+    if (ok) { closeModal(); render(); toast('Saved'); }
+  },
+  removePerson: (el) => {
+    const p = S.people.find(x => x.id === el.dataset.id);
+    modal(`<h3>Remove ${esc(p.name)}?</h3><p>They won't be able to sign in. Any times already entered this fortnight stay on the timesheet and the PDF.</p>
+      <div class="m-actions"><button class="btn ghost" data-action="closeModal">Cancel</button>
+      <button class="btn danger" data-action="confirmRemove" data-id="${p.id}">Remove</button></div>`);
+  },
+  confirmRemove: async (el) => {
+    const ok = await run('Removing…', async () => {
+      S.people = (await api('removePerson', { id: el.dataset.id })).people;
+      S.f = (await api('fortnight')).fortnight;
+    });
+    if (ok) { closeModal(); render(); toast('Removed'); }
+  },
+  toggleSelf: async (el) => {
+    const p = S.people.find(x => x.id === el.dataset.id);
+    if (el.checked && !p.hasPin) { el.checked = false; personModal(Object.assign({}, p, { selfEntry: true })); return; }
+    const ok = await run('Saving…', async () => {
+      S.people = (await api('savePerson', { person: { id: p.id, role: p.role, name: p.name, selfEntry: el.checked } })).people;
+      S.f = (await api('fortnight')).fortnight;
+    });
+    render();
+    if (ok) toast(el.checked ? `${p.name} can now enter their own time` : `The office now enters ${p.name}'s time`);
+  },
+  toggleWeekends: async (el) => {
+    const ok = await run('Saving…', async () => { await api('saveSettings', { showWeekends: el.checked }); });
+    if (ok) S.f.showWeekends = el.checked;
+    render();
+  },
+  changePin: () => modal(`<h3>Change my PIN</h3><div class="form">
+    <label class="field"><span>New PIN</span><input id="cp-1" type="password" inputmode="numeric" maxlength="4" autocomplete="off"></label>
+    <label class="field"><span>Enter it again</span><input id="cp-2" type="password" inputmode="numeric" maxlength="4" autocomplete="off"></label>
+    <p class="m-err" id="cp-err"></p></div>
+    <div class="m-actions"><button class="btn ghost" data-action="closeModal">Cancel</button><button class="btn primary" data-action="savePin">Save PIN</button></div>`),
+  savePin: async () => {
+    const a = $('#cp-1').value, b = $('#cp-2').value, err = $('#cp-err');
+    if (!/^\d{4}$/.test(a)) return err.textContent = 'The PIN needs to be 4 numbers.';
+    if (a !== b) return err.textContent = "The two PINs don't match.";
+    const ok = await run('Saving…', async () => { await api('changePin', { newPin: a }); S.auth.pin = a; });
+    if (ok) { closeModal(); toast('PIN changed'); }
+  }
+};
+
+/* ---------- events ---------- */
+document.addEventListener('click', (e) => {
+  if (e.target.matches('[data-overlay]')) return closeModal();
+  const el = e.target.closest('[data-action]');
+  if (!el || el.disabled || el.matches('input')) return;
+  const fn = ACTIONS[el.dataset.action];
+  if (fn) { e.preventDefault(); fn(el, e); }
+});
+document.addEventListener('change', (e) => {
+  const el = e.target;
+  if (el.matches('[data-field]')) return fieldChange(el, el.type === 'checkbox' || el.tagName === 'SELECT');
+  if (el.matches('input[data-action]') && ACTIONS[el.dataset.action]) ACTIONS[el.dataset.action](el, e);
+});
+document.addEventListener('input', (e) => {
+  const el = e.target;
+  if (el.matches('[data-field]') && el.type !== 'checkbox' && el.tagName !== 'SELECT') fieldChange(el, false);
+});
+document.addEventListener('keydown', (e) => {
+  S.lastActive = Date.now();
+  if (S.view === 'pin' && !$('#layer').innerHTML) {
+    if (/^\d$/.test(e.key) && S.pin.length < 4) { S.pin += e.key; S.pinErr = ''; render(); if (S.pin.length === 4) submitPin(); }
+    else if (e.key === 'Backspace') { S.pin = S.pin.slice(0, -1); render(); }
+  }
+  if (e.key === 'Escape' && $('.modal')) closeModal();
+});
+['pointerdown', 'input', 'scroll'].forEach(ev => document.addEventListener(ev, () => { S.lastActive = Date.now(); }, { passive: true }));
+setInterval(() => {
+  if (S.me && S.me.role === 'Admin' && Date.now() - S.lastActive > LOCK_AFTER_MS) signOut('Locked after 15 minutes without use');
+}, 20000);
+window.addEventListener('beforeunload', (e) => { if (hasDrafts()) { e.preventDefault(); e.returnValue = ''; } });
+
+boot();
+</script>
+</body>
+</html>
