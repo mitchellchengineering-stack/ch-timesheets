@@ -252,7 +252,7 @@ function t12(t) { const m = toMin(t); if (m == null) return ''; const h = Math.f
 
 /* Same rules as the Google script:
    start rounds to nearest 15 (UP to the next 15 if late), finish rounds to nearest 15,
-   30 min lunch off when the day is over 6 hours unless "didn't have lunch" is ticked. */
+   30 min lunch off when the day is 5 hours or more unless "didn't have lunch" is ticked. */
 function calc(d, isPH) {
   const out = { countedStart: '', countedFinish: '', lunchDeducted: false, minutes: 0, incomplete: false, bad: false };
   if (d.status) return out;
@@ -265,7 +265,7 @@ function calc(d, isPH) {
   out.countedStart = fromMin(cs); out.countedFinish = fromMin(cf);
   let worked = cf - cs;
   if (worked <= 0) { out.incomplete = true; out.bad = true; return out; }
-  if (worked > 360 && !d.noLunch) { worked -= 30; out.lunchDeducted = true; }
+  if (worked >= 300 && !d.noLunch) { worked -= 30; out.lunchDeducted = true; }
   out.minutes = worked;
   return out;
 }
